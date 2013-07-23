@@ -2,7 +2,7 @@ REPORTER = spec
 TESTS = test/*
 
 test:
-	@NODE_ENV=test mocha --reporter $(REPORTER)
+	@NODE_ENV=test mocha -t 6s --reporter $(REPORTER)
 
 coverage:
 	@$(MAKE) clean
