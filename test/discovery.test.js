@@ -15,29 +15,14 @@ function getOpts(custom) {
 }
 
 function checkMessage(msg, opts) {
-  if (opts && opts.payload) {
-    if (typeof opts.payload == 'string') {
-      var regexp = new RegExp('^' + opts.payload + '$')
-      assert(regexp.test(msg.payload()))
-    }
-    
-    if (typeof opts.payload == 'object') {
-      assert.deepEqual(opts.payload, msg.payload())
-    }
-  } else if (!opts || opts.payload !== null) {
-    assert(/^hello$/.test(msg.payload()))
-  } else {
-    assert(msg.payload() === null)
-  }
+  assert(msg.node.id)
+  assert(msg.node.host)
+  assert(msg.node.port)
   
-  assert(msg.header().version == Disco.protocolVersion)
-  assert(msg.header().encrypted == (opts && opts.encrypted ? 1 : 0))
-}
-
-function checkMeta(msg, opts) {
-  if (opts && opts.encrypted) {
-    assert(msg.meta().nonce)
-    assert(msg.meta().nonce.length === 40)
+  if (opts) {
+    if (typeof opts.payload === null) assert(msg.payload === null)
+    if (typeof opts.payload != 'object') assert(msg.payload === opts.payload)
+    else assert.deepEqual(msg.payload, opts.payload)
   }
 }
 
@@ -120,7 +105,7 @@ describe('Discovery event', function () {
 
       ;[server1, server2].forEach(function(server){
         server.on('discovery', function(msg){
-          checkMessage(msg, {encrypted: true})
+          checkMessage(msg)
           if (++messageCount == 2) {
             server1.stop(function(){
               server2.stop(done)
@@ -147,9 +132,9 @@ describe('Discovery event', function () {
       server1.discovery('custom payload', handler)
       server2.discovery('custom payload', handler)
 
-      function handler(node) {
-        assert(node.id)
-        assert(node.address)
+      function handler(msg) {
+        checkMessage(msg, {payload: 'custom payload'})
+        
         if (++messageCount == 4) {
           server1.stop(function(){
             server2.stop(done)
@@ -179,12 +164,49 @@ describe('Discovery event', function () {
       server1.discovery({foo: 'no'}, handler)
       server2.discovery({foo: 'no'}, handler)
 
-      function handler(node, msg) {
-        assert(node.id)
-        assert(node.address)
-        assert.deepEqual({foo: 'no'}, msg.payload())
+      function handler(msg) {
+        checkMessage(msg, {payload: {foo: 'no'}})
         
         if (++messageCount == 4) {
+          server1.stop(function(){
+            server2.stop(done)
+          })
+        }
+      }
+
+      [server1, server2].forEach(function(server){
+        server.on('discovery', function(msg){
+          checkMessage(msg, {payload: {foo: 'no'}})
+        })
+      })
+
+      server1.start(function(){
+        server2.start()
+      })
+    })
+
+    it('function as payload is executed', function (done) {
+      var opts = getOpts()
+        , server1 = Disco(opts)
+        , server2 = Disco(opts)
+        , messageCount = 0
+
+      assert.notEqual(server1.id, server2.id)
+
+      server1.discovery(payload, handler)
+      server2.discovery(payload, handler)
+
+      var i = 0
+      
+      function payload() {
+        return i++
+      }
+      
+      function handler(msg) {
+        checkMessage(msg)
+
+        if (++messageCount == 8) {
+          assert(i>2)
           server1.stop(function(){
             server2.stop(done)
           })
@@ -226,9 +248,7 @@ describe('Custom events', function () {
 
       ;[server1, server2].forEach(function(server){
         server.on('heyoo', function(msg){
-          var opt = {payload: 'howdy neighborino!'}
-          checkMessage(msg, opt)
-          checkMeta(msg, opt)
+          checkMessage(msg, {payload: 'howdy neighborino!'})
 
           if (++messageCount == 2) {
             server1.stop(function(){
@@ -256,9 +276,7 @@ describe('Custom events', function () {
 
       ;[server1, server2].forEach(function(server){
         server.on('heyoo', function(msg){
-          var opt = {payload: 'howdy neighborino!', encrypted: true}
-          checkMessage(msg, opt)
-          checkMeta(msg, opt)
+          checkMessage(msg, {payload: 'howdy neighborino!'})
 
           if (++messageCount == 2) {
             server1.stop(function(){
@@ -287,7 +305,6 @@ describe('Custom events', function () {
       ;[server1, server2].forEach(function(server){
         server.on('updog', function(msg){
           checkMessage(msg, {payload: null})
-          checkMeta(msg)
           
           if (++messageCount == 2) {
             server1.stop(function(){
@@ -315,8 +332,7 @@ describe('Custom events', function () {
       
       ;[server1, server2].forEach(function(server){
         server.on('updog', function(msg){
-          checkMessage(msg, {payload: null, encrypted: true})
-          checkMeta(msg, {encrypted: true})
+          checkMessage(msg, {payload: null})
           
           if (++messageCount == 2) {
             server1.stop(function(){
@@ -348,7 +364,6 @@ describe('Node list', function () {
     ;[server1, server2].forEach(function(server){
       server.on('discovery', function(msg){
         checkMessage(msg)
-        checkMeta(msg)
         
         if (++messageCount == 6) {
           test()
@@ -409,8 +424,8 @@ describe('Start/stop', function () {
       assert(server1.listeners('discovery').length === 0)
       assert(server2.listeners('discovery').length === 0)
 
-      assert(server1.server.listeners('message').length === 0)
-      assert(server2.server.listeners('message').length === 0)
+      assert(server1.eventcast.listeners('message').length === 0)
+      assert(server2.eventcast.listeners('message').length === 0)
       done()
     }
     
