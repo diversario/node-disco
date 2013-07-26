@@ -1,9 +1,14 @@
 # Disco
 Network discovery, messaging and events.
 
+  [![Build Status](https://secure.travis-ci.org/diversario/node-disco.png?branch=develop)](http://travis-ci.org/diversario/node-disco)
+  [![Coverage Status](https://coveralls.io/repos/diversario/node-disco/badge.png?branch=develop)](https://coveralls.io/r/diversario/node-disco?branch=develop)
+  [![Dependency Status](https://gemnasium.com/diversario/node-disco.png)](https://gemnasium.com/diversario/node-disco)
+  [![NPM version](https://badge.fury.io/js/node-disco.png)](http://badge.fury.io/js/node-disco)
+
 ```
 npm install disco
-```
+```da
 ## How it works
 `disco` instances use UDP multicast to advertise themselves on the network. Advertisement messages may contain information that recipient would need to connect to sender through something other than UDP or anything else.
 
