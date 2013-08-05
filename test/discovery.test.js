@@ -59,6 +59,14 @@ describe('Discovery event', function () {
           return (a.id < b.id) ? -1 : 1
         })
 
+        list1.forEach(function (node) {
+          delete node.phi
+        })
+
+        list2.forEach(function (node) {
+          delete node.phi
+        })
+        
         assert.deepEqual(list1, list2)
         
         server1.stop(function(){
@@ -382,6 +390,59 @@ describe('Node list', function () {
       })
     }
     
+    server1.start(function(){
+      server2.start()
+    })
+  })
+})
+
+
+
+describe('Failure detector', function () {
+  it('increases when server is down', function (done) {
+    this.timeout(10000)
+    
+    var opts = getOpts({discoveryInterval: 30})
+      , server1 = Disco(opts)
+      , server2 = Disco(opts)
+      , messageCount = 0
+
+    assert.notEqual(server1.id, server2.id)
+
+    ;[server1, server2].forEach(function(server){
+      server.on('discovery', function(msg){
+        checkMessage(msg)
+
+        if (messageCount > 50) server2.stop()
+        
+        if (++messageCount == 100) {
+          test()
+        }
+      })
+    })
+
+    function test() {
+      var nodes = server1.getNodes()
+
+      assert(nodes.length == 2)
+      assert(nodes[0].id != nodes[1].id)
+
+      var s1 = nodes.filter(function (node) {
+        return node.id == server1.id
+      })[0]
+
+      var s2 = nodes.filter(function (node) {
+        return node.id == server2.id
+      })[0]
+      
+      assert(s1.phi() < 1)
+      assert(s2.phi() > 50)
+      
+      server1.stop(function(){
+        server2.stop(done)
+      })
+    }
+
     server1.start(function(){
       server2.start()
     })
