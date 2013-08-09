@@ -436,7 +436,7 @@ describe('Failure detector', function () {
       })[0]
 
       assert(s1.fd.phi() < 1)
-      assert(s2.fd.phi() > 50)
+      assert(s2.fd.phi() > 10)
       
       server1.stop(function(){
         server2.stop(done)
