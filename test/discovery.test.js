@@ -60,11 +60,11 @@ describe('Discovery event', function () {
         })
 
         list1.forEach(function (node) {
-          delete node.phi
+          delete node.fd
         })
 
         list2.forEach(function (node) {
-          delete node.phi
+          delete node.fd
         })
         
         assert.deepEqual(list1, list2)
@@ -434,9 +434,9 @@ describe('Failure detector', function () {
       var s2 = nodes.filter(function (node) {
         return node.id == server2.id
       })[0]
-      
-      assert(s1.phi() < 1)
-      assert(s2.phi() > 50)
+
+      assert(s1.fd.phi() < 1)
+      assert(s2.fd.phi() > 50)
       
       server1.stop(function(){
         server2.stop(done)
