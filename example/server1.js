@@ -6,6 +6,7 @@ var server = Disco({
   multicastLoopback: true,
   multicastMembership: '224.192.1.1',
   replPort: 20001,
+  replEnabled: true,
   logLevel: 20
 })
 

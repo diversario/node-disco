@@ -48,8 +48,8 @@ describe('Discovery event', function () {
       })
 
       function getNodeList() {
-        var list1 = server1.nodes.toArray()
-          , list2 = server2.nodes.toArray()
+        var list1 = server1.getNodes()
+          , list2 = server2.getNodes()
         
         list1.sort(function (a, b) {
           return (a.id < b.id) ? -1 : 1
@@ -60,11 +60,11 @@ describe('Discovery event', function () {
         })
 
         list1.forEach(function (node) {
-          delete node.fd
+          delete node.phi
         })
 
         list2.forEach(function (node) {
-          delete node.fd
+          delete node.phi
         })
         
         assert.deepEqual(list1, list2)
@@ -435,8 +435,8 @@ describe('Failure detector', function () {
         return node.id == server2.id
       })[0]
 
-      assert(s1.fd.phi() < 1)
-      assert(s2.fd.phi() > 10)
+      assert(s1.phi() < 1)
+      assert(s2.phi() > 10)
       
       server1.stop(function(){
         server2.stop(done)

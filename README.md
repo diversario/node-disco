@@ -8,7 +8,7 @@ Network discovery, messaging and events.
 
 ```
 npm install disco
-```da
+```
 ## How it works
 `disco` instances use UDP multicast to advertise themselves on the network. Advertisement messages may contain information that recipient would need to connect to sender through something other than UDP or anything else.
 

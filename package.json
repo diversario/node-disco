@@ -26,7 +26,8 @@
     "ip": "0.1.x",
     "bunyan": "~0.21.4",
     "bunyan-prettystream": "~0.1.2",
-    "failure-detector": "0.1.0"
+    "failure-detector": "0.1.0",
+    "replize": "0.0.5"
   },
   "devDependencies": {
     "mocha": "1.x",
